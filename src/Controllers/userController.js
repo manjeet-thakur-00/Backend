@@ -6,7 +6,7 @@ import {
     validateEmail,
     validatePhoneNumber,
     validatepassword,
-} from "../utils/validation.js";
+} from '../Utils/validation.js'
 import envConfig from "../config/envConfig.js";
 import transporter from "../middleware/emailConfig.js";
 
@@ -74,32 +74,33 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const findemail = await UserData.findOne({ email }).populate("role");
+
         if (!findemail) {
-            return res.status(404).json({ message: "user not found" });
+            return res.status(404).json({ message: "User not found" });
         }
+
         const matchpassword = await bcrypt.compare(password, findemail.password);
+
         if (!matchpassword) {
-            return res.status(404).json({ message: "worng password" });
+            return res.status(404).json({ message: "Wrong password" });
         }
+
         const token = Jwt.sign(
             {
                 _id: findemail._id,
                 userName: findemail.userName,
                 email: findemail.email,
                 mobileNo: findemail.phoneNumber,
-                password: findemail.password,
                 role: findemail.role,
             },
             envConfig.SECRET_KEY,
             { expiresIn: "1h" }
         );
-        const userdata = {
-            token: token,
-        };
-        return res.status(200).json({ message: "login succesfully", userdata });
+
+        return res.status(200).json({ message: "Login successfully", token });
     } catch (error) {
-        console.error("Error in finding user");
-        return res.status(500).json({ message: "error in  finding user ", error });
+        console.error("Error in finding user:", error);
+        return res.status(500).json({ message: "Error in finding user", error });
     }
 };
 
